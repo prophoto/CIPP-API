@@ -11,25 +11,27 @@
 
 # Authenticate with Azure PowerShell using MSI.
 # Remove this if you are not planning on using MSI or Azure PowerShell.
-Import-Module .\GraphHelper.psm1
-Import-Module Az.KeyVault
-Import-Module Az.Accounts
-Import-Module GraphRequests
-Import-Module CippExtensions
-Import-Module CippCore
+
+# Import modules
+@('CippCore','CippExtensions','Az.KeyVault','Az.Accounts') | ForEach-Object {
+    try {
+        Import-Module -Name $_ -ErrorAction Stop
+    } catch {
+        Write-LogMessage -message "Failed to import module $($_): $_.Exception.Message" -Sev 'CRITICAL'
+        $_.Exception.Message
+    }
+}
 
 try {
     Disable-AzContextAutosave -Scope Process | Out-Null
-}
-catch {}
+} catch {}
 
 try {
     if (!$ENV:SetFromProfile) {
         Write-Host "We're reloading from KV"
         $Auth = Get-CIPPAuthentication
     }
-}
-catch {
+} catch {
     Write-LogMessage -message "Could not retrieve keys from Keyvault: $($_.Exception.Message)" -Sev 'CRITICAL'
 }
 
