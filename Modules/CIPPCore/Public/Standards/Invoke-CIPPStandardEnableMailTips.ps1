@@ -2,7 +2,35 @@ function Invoke-CIPPStandardEnableMailTips {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    EnableMailTips
+    .CAT
+    Exchange Standards
+    .TAG
+    "lowimpact"
+    "CIS"
+    "exo_mailtipsenabled"
+    .HELPTEXT
+    Enables all MailTips in Outlook. MailTips are the notifications Outlook and Outlook on the web shows when an email you create, meets some requirements
+    .ADDEDCOMPONENT
+    {"type":"number","name":"standards.EnableMailTips.MailTipsLargeAudienceThreshold","label":"Number of recipients to trigger the large audience MailTip (Default is 25)","placeholder":"Enter a profile name","default":25}
+    .LABEL
+    Enable all MailTips
+    .IMPACT
+    Low Impact
+    .POWERSHELLEQUIVALENT
+    Set-OrganizationConfig
+    .RECOMMENDEDBY
+    "CIS"
+    .DOCSDESCRIPTION
+    Enables all MailTips in Outlook. MailTips are the notifications Outlook and Outlook on the web shows when an email you create, meets some requirements
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
 
     param($Tenant, $Settings)
     $MailTipsState = New-ExoRequest -tenantid $Tenant -cmdlet 'Get-OrganizationConfig' | Select-Object MailTipsAllTipsEnabled, MailTipsExternalRecipientsTipsEnabled, MailTipsGroupMetricsEnabled, MailTipsLargeAudienceThreshold
@@ -10,21 +38,22 @@ function Invoke-CIPPStandardEnableMailTips {
 
     if ($Settings.remediate -eq $true) {
 
-        if ($StateIsCorrect) {
+        if ($StateIsCorrect -eq $true) {
             Write-LogMessage -API 'Standards' -tenant $Tenant -message 'All MailTips are already enabled.' -sev Info
         } else {
             try {
-                New-ExoRequest -tenantid $Tenant -cmdlet 'Set-OrganizationConfig' -cmdparams @{ MailTipsAllTipsEnabled = $true; MailTipsExternalRecipientsTipsEnabled = $true; MailTipsGroupMetricsEnabled = $true; MailTipsLargeAudienceThreshold = $Settings.MailTipsLargeAudienceThreshold }
+                New-ExoRequest -useSystemMailbox $true -tenantid $Tenant -cmdlet 'Set-OrganizationConfig' -cmdparams @{ MailTipsAllTipsEnabled = $true; MailTipsExternalRecipientsTipsEnabled = $true; MailTipsGroupMetricsEnabled = $true; MailTipsLargeAudienceThreshold = $Settings.MailTipsLargeAudienceThreshold }
                 Write-LogMessage -API 'Standards' -tenant $Tenant -message 'Enabled all MailTips' -sev Info
             } catch {
-                Write-LogMessage -API 'Standards' -tenant $Tenant -message "Failed to enable all MailTips. Error: $($_.exception.message)" -sev Error
+                $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+                Write-LogMessage -API 'Standards' -tenant $Tenant -message "Failed to enable all MailTips. Error: $ErrorMessage" -sev Error
             }
         }
     }
 
     if ($Settings.alert -eq $true) {
 
-        if ($StateIsCorrect) {
+        if ($StateIsCorrect -eq $true) {
             Write-LogMessage -API 'Standards' -tenant $Tenant -message 'All MailTips are enabled' -sev Info
         } else {
             Write-LogMessage -API 'Standards' -tenant $Tenant -message 'Not all MailTips are enabled' -sev Alert
@@ -37,3 +66,7 @@ function Invoke-CIPPStandardEnableMailTips {
     }
 
 }
+
+
+
+

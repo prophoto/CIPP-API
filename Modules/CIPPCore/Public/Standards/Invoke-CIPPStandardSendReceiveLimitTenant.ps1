@@ -2,8 +2,48 @@ function Invoke-CIPPStandardSendReceiveLimitTenant {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    SendReceiveLimitTenant
+    .CAT
+    Exchange Standards
+    .TAG
+    "lowimpact"
+    .HELPTEXT
+    Sets the Send and Receive limits for new users. Valid values are 1MB to 150MB
+    .ADDEDCOMPONENT
+    {"type":"number","name":"standards.SendReceiveLimitTenant.SendLimit","label":"Send limit in MB (Default is 35)","default":35}
+    {"type":"number","name":"standards.SendReceiveLimitTenant.ReceiveLimit","label":"Receive Limit in MB (Default is 36)","default":36}
+    .LABEL
+    Set send/receive size limits
+    .IMPACT
+    Low Impact
+    .POWERSHELLEQUIVALENT
+    Set-MailboxPlan
+    .RECOMMENDEDBY
+    .DOCSDESCRIPTION
+    Sets the Send and Receive limits for new users. Valid values are 1MB to 150MB
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
+
+    # Input validation
+    if ($Settings.SendLimit -lt 1 -or $Settings.SendLimit -gt 150) {
+        Write-LogMessage -API 'Standards' -tenant $tenant -message 'SendReceiveLimitTenant: Invalid SendLimit parameter set' -sev Error
+        Return
+    }
+
+    # Input validation
+    if ($Settings.ReceiveLimit -lt 1 -or $Settings.ReceiveLimit -gt 150) {
+        Write-LogMessage -API 'Standards' -tenant $tenant -message 'SendReceiveLimitTenant: Invalid ReceiveLimit parameter set' -sev Error
+        Return
+    }
+
+
     $AllMailBoxPlans = New-ExoRequest -tenantid $Tenant -cmdlet 'Get-MailboxPlan' | Select-Object DisplayName, MaxSendSize, MaxReceiveSize, GUID
     $MaxSendSize = [int64]"$($Settings.SendLimit)MB"
     $MaxReceiveSize = [int64]"$($Settings.ReceiveLimit)MB"
@@ -27,7 +67,8 @@ function Invoke-CIPPStandardSendReceiveLimitTenant {
                 }
                 Write-LogMessage -API 'Standards' -tenant $tenant -message "Successfully set the tenant send($($Settings.SendLimit)MB) and receive($($Settings.ReceiveLimit)MB) limits" -sev Info
             } catch {
-                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to set the tenant send and receive limits. Error: $($_.exception.message)" -sev Error
+                $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to set the tenant send and receive limits. Error: $ErrorMessage" -sev Error
             }
         } else {
             Write-LogMessage -API 'Standards' -tenant $tenant -message "The tenant send($($Settings.SendLimit)MB) and receive($($Settings.ReceiveLimit)MB) limits are already set correctly" -sev Info
@@ -47,3 +88,7 @@ function Invoke-CIPPStandardSendReceiveLimitTenant {
         Add-CIPPBPAField -FieldName 'SendReceiveLimit' -FieldValue $NotSetCorrectly -StoreAs json -Tenant $tenant
     }
 }
+
+
+
+

@@ -2,7 +2,36 @@ function Invoke-CIPPStandardDisableOutlookAddins {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    DisableOutlookAddins
+    .CAT
+    Exchange Standards
+    .TAG
+    "mediumimpact"
+    "CIS"
+    "exo_outlookaddins"
+    .HELPTEXT
+    Disables the ability for users to install add-ins in Outlook. This is to prevent users from installing malicious add-ins.
+    .DOCSDESCRIPTION
+    Disables users from being able to install add-ins in Outlook. Only admins are able to approve add-ins for the users. This is done to reduce the threat surface for data exfiltration.
+    .ADDEDCOMPONENT
+    .LABEL
+    Disable users from installing add-ins in Outlook
+    .IMPACT
+    Medium Impact
+    .POWERSHELLEQUIVALENT
+    Get-ManagementRoleAssignment | Remove-ManagementRoleAssignment
+    .RECOMMENDEDBY
+    "CIS"
+    .DOCSDESCRIPTION
+    Disables the ability for users to install add-ins in Outlook. This is to prevent users from installing malicious add-ins.
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
 
     $CurrentInfo = New-ExoRequest -tenantid $Tenant -cmdlet 'Get-RoleAssignmentPolicy' | Where-Object { $_.IsDefault -eq $true }
@@ -24,7 +53,8 @@ function Invoke-CIPPStandardDisableOutlookAddins {
                         Write-LogMessage -API 'Standards' -tenant $tenant -message "Disabled Outlook add-in role: $Role" -sev Debug
                     }
                 } catch {
-                    Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to disable Outlook add-in role: $Role Error: $($_.exception.message)" -sev Error
+                    $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+                    Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to disable Outlook add-in role: $Role Error: $ErrorMessage" -sev Error
                     $Errors.Add($Role)
                 }
             }
@@ -48,7 +78,11 @@ function Invoke-CIPPStandardDisableOutlookAddins {
         }
     }
     if ($Settings.report -eq $true) {
-        if ($RolesToRemove) { $State = $false } else { $State = $true }
+        $State = if ($RolesToRemove) { $false } else { $true }
         Add-CIPPBPAField -FieldName 'DisabledOutlookAddins' -FieldValue $State -StoreAs bool -Tenant $tenant
     }
 }
+
+
+
+

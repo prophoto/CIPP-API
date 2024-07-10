@@ -2,7 +2,30 @@ function Invoke-CIPPStandardintuneRequireMFA {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    intuneRequireMFA
+    .CAT
+    Intune Standards
+    .TAG
+    "mediumimpact"
+    .HELPTEXT
+    Requires MFA for all users to register devices with Intune. This is useful when not using Conditional Access.
+    .LABEL
+    Require Multifactor Authentication to register or join devices with Microsoft Entra
+    .IMPACT
+    Medium Impact
+    .POWERSHELLEQUIVALENT
+    Update-MgBetaPolicyDeviceRegistrationPolicy
+    .RECOMMENDEDBY
+    .DOCSDESCRIPTION
+    Requires MFA for all users to register devices with Intune. This is useful when not using Conditional Access.
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
     $PreviousSetting = New-GraphGetRequest -uri 'https://graph.microsoft.com/beta/policies/deviceRegistrationPolicy' -tenantid $Tenant
 
@@ -17,7 +40,8 @@ function Invoke-CIPPStandardintuneRequireMFA {
                 New-GraphPostRequest -tenantid $tenant -Uri 'https://graph.microsoft.com/beta/policies/deviceRegistrationPolicy' -Type PUT -Body $NewBody -ContentType 'application/json'
                 Write-LogMessage -API 'Standards' -tenant $tenant -message 'Set required to use MFA when joining/registering Entra Devices' -sev Info
             } catch {
-                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to set require to use MFA when joining/registering Entra Devices: $($_.exception.message)" -sev Error
+                $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to set require to use MFA when joining/registering Entra Devices: $ErrorMessage" -sev Error
             }
         }
     }
@@ -36,3 +60,7 @@ function Invoke-CIPPStandardintuneRequireMFA {
         Add-CIPPBPAField -FieldName 'intuneRequireMFA' -FieldValue $RequireMFA -StoreAs bool -Tenant $tenant
     }
 }
+
+
+
+

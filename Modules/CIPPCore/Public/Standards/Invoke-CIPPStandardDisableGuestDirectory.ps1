@@ -2,7 +2,33 @@ function Invoke-CIPPStandardDisableGuestDirectory {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    DisableGuestDirectory
+    .CAT
+    Global Standards
+    .TAG
+    "lowimpact"
+    .HELPTEXT
+    Disables Guest access to enumerate directory objects. This prevents guest users from seeing other users or guests in the directory.
+    .DOCSDESCRIPTION
+    Sets it so guests can view only their own user profile. Permission to view other users isn't allowed. Also restricts guest users from seeing the membership of groups they're in. See exactly what get locked down in the [Microsoft documentation.](https://learn.microsoft.com/en-us/entra/fundamentals/users-default-permissions)
+    .ADDEDCOMPONENT
+    .LABEL
+    Restrict guest user access to directory objects
+    .IMPACT
+    Low Impact
+    .POWERSHELLEQUIVALENT
+    Set-AzureADMSAuthorizationPolicy -GuestUserRoleId '2af84b1e-32c8-42b7-82bc-daa82404023b'
+    .RECOMMENDEDBY
+    .DOCSDESCRIPTION
+    Disables Guest access to enumerate directory objects. This prevents guest users from seeing other users or guests in the directory.
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
     $CurrentInfo = New-GraphGetRequest -Uri 'https://graph.microsoft.com/beta/policies/authorizationPolicy/authorizationPolicy' -tenantid $Tenant
 
@@ -16,7 +42,8 @@ function Invoke-CIPPStandardDisableGuestDirectory {
                 New-GraphPostRequest -tenantid $tenant -Uri 'https://graph.microsoft.com/beta/policies/authorizationPolicy/authorizationPolicy' -Type patch -Body $body -ContentType 'application/json'
                 Write-LogMessage -API 'Standards' -tenant $tenant -message 'Disabled Guest access to directory information.' -sev Info
             } catch {
-                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to disable Guest access to directory information.: $($_.exception.message)" -sev 'Error'
+                $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to disable Guest access to directory information.: $ErrorMessage" -sev 'Error'
             }
         }
     }
@@ -35,3 +62,7 @@ function Invoke-CIPPStandardDisableGuestDirectory {
         Add-CIPPBPAField -FieldName 'DisableGuestDirectory' -FieldValue $CurrentInfo.guestUserRoleId -StoreAs bool -Tenant $tenant
     }
 }
+
+
+
+

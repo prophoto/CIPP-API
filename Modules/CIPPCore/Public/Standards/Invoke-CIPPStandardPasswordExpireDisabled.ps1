@@ -2,7 +2,36 @@ function Invoke-CIPPStandardPasswordExpireDisabled {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    PasswordExpireDisabled
+    .CAT
+    Entra (AAD) Standards
+    .TAG
+    "lowimpact"
+    "CIS"
+    "PWAgePolicyNew"
+    .HELPTEXT
+    Disables the expiration of passwords for the tenant by setting the password expiration policy to never expire for any user.
+    .DOCSDESCRIPTION
+    Sets passwords to never expire for tenant, recommended to use in conjunction with secure password requirements.
+    .ADDEDCOMPONENT
+    .LABEL
+    Do not expire passwords
+    .IMPACT
+    Low Impact
+    .POWERSHELLEQUIVALENT
+    Update-MgDomain
+    .RECOMMENDEDBY
+    "CIS"
+    .DOCSDESCRIPTION
+    Disables the expiration of passwords for the tenant by setting the password expiration policy to never expire for any user.
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
     $GraphRequest = New-GraphGetRequest -uri 'https://graph.microsoft.com/v1.0/domains' -tenantid $Tenant
     $DomainswithoutPassExpire = $GraphRequest | Where-Object -Property passwordValidityPeriodInDays -NE '2147483647'
@@ -21,7 +50,8 @@ function Invoke-CIPPStandardPasswordExpireDisabled {
                     New-GraphPostRequest -type Patch -tenantid $Tenant -uri "https://graph.microsoft.com/v1.0/domains/$($_.id)" -body $Body
                     Write-LogMessage -API 'Standards' -tenant $tenant -message "Disabled Password Expiration for $($_.id)." -sev Info
                 } catch {
-                    Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to disable Password Expiration for $($_.id). Error: $($_.exception.message)" -sev Error
+                    $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+                    Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to disable Password Expiration for $($_.id). Error: $ErrorMessage" -sev Error
                 }
             }
         } else {
@@ -42,3 +72,7 @@ function Invoke-CIPPStandardPasswordExpireDisabled {
         Add-CIPPBPAField -FieldName 'PasswordExpireDisabled' -FieldValue $DomainswithoutPassExpire -StoreAs json -Tenant $tenant
     }
 }
+
+
+
+

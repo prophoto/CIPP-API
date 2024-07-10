@@ -2,9 +2,38 @@ function Invoke-CIPPStandardDisableAddShortcutsToOneDrive {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    DisableAddShortcutsToOneDrive
+    .CAT
+    SharePoint Standards
+    .TAG
+    "mediumimpact"
+    .HELPTEXT
+    When the feature is disabled the option Add shortcut to OneDrive will be removed. Any folders that have already been added will remain on the user's computer.
+    .DISABLEDFEATURES
+    
+    .ADDEDCOMPONENT
+    .LABEL
+    Disable Add Shortcuts To OneDrive
+    .IMPACT
+    Medium Impact
+    .POWERSHELLEQUIVALENT
+    Graph API or Portal
+    .RECOMMENDEDBY
+    .DOCSDESCRIPTION
+    When the feature is disabled the option Add shortcut to OneDrive will be removed. Any folders that have already been added will remain on the user's computer.
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
+
     If ($Settings.remediate -eq $true) {
+        Write-Host 'Time to remediate'
+
         function GetTenantRequestXml {
             return @'
         <Request AddExpandoFieldTypeSuffix="true" SchemaVersion="15.0.0.0" LibraryVersion="16.0.0.0"
@@ -57,9 +86,8 @@ function Invoke-CIPPStandardDisableAddShortcutsToOneDrive {
         }
 
         try {
-            $OnMicrosoft = (New-GraphGetRequest -uri 'https://graph.microsoft.com/beta/domains?$top=999' -tenantid $tenant |
-                Where-Object -Property isInitial -EQ $true).id.split('.') | Select-Object -First 1
-            $AdminUrl = "https://$($OnMicrosoft)-admin.sharepoint.com"
+                $tenantName = (New-GraphGetRequest -uri 'https://graph.microsoft.com/beta/sites/root' -asApp $true -tenantid $TenantFilter).id.Split('.')[0]
+            $AdminUrl = "https://$($tenantName)-admin.sharepoint.com"
             $graphRequest = @{
                 'scope'       = "$AdminURL/.default"
                 'tenantid'    = $tenant
@@ -85,10 +113,15 @@ function Invoke-CIPPStandardDisableAddShortcutsToOneDrive {
             on $($Tenant, $Settings): $($response.ErrorInfo.ErrorMessage)"
             }
         } catch {
-            $log.message = "Failed to set OneDrive shortcut: $($_.Exception.Message)"
+            $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+            $log.message = "Failed to set OneDrive shortcut: $ErrorMessage"
             $log.sev = 'Error'
         }
 
         Write-LogMessage @log
     }
 }
+
+
+
+

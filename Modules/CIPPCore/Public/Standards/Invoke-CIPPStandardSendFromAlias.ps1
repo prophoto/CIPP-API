@@ -2,7 +2,33 @@ function Invoke-CIPPStandardSendFromAlias {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    SendFromAlias
+    .CAT
+    Exchange Standards
+    .TAG
+    "mediumimpact"
+    .HELPTEXT
+    Enables the ability for users to send from their alias addresses.
+    .DOCSDESCRIPTION
+    Allows users to change the 'from' address to any set in their Azure AD Profile.
+    .ADDEDCOMPONENT
+    .LABEL
+    Allow users to send from their alias addresses
+    .IMPACT
+    Medium Impact
+    .POWERSHELLEQUIVALENT
+    Set-Mailbox
+    .RECOMMENDEDBY
+    .DOCSDESCRIPTION
+    Enables the ability for users to send from their alias addresses.
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
     $CurrentInfo = (New-ExoRequest -tenantid $Tenant -cmdlet 'Get-OrganizationConfig').SendFromAliasEnabled
 
@@ -13,7 +39,8 @@ function Invoke-CIPPStandardSendFromAlias {
                 Write-LogMessage -API 'Standards' -tenant $tenant -message 'Send from alias enabled.' -sev Info
                 $CurrentInfo = $true
             } catch {
-                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to enable send from alias. Error: $($_.exception.message)" -sev Error
+                $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to enable send from alias. Error: $ErrorMessage" -sev Error
             }
         } else {
             Write-LogMessage -API 'Standards' -tenant $tenant -message 'Send from alias is already enabled.' -sev Info
@@ -32,3 +59,7 @@ function Invoke-CIPPStandardSendFromAlias {
         Add-CIPPBPAField -FieldName 'SendFromAlias' -FieldValue $CurrentInfo -StoreAs bool -Tenant $tenant
     }
 }
+
+
+
+

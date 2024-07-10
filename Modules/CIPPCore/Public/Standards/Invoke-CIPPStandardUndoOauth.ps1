@@ -2,11 +2,34 @@ function Invoke-CIPPStandardUndoOauth {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    UndoOauth
+    .CAT
+    Entra (AAD) Standards
+    .TAG
+    "highimpact"
+    .HELPTEXT
+    Disables App consent and set to Allow user consent for apps
+    .ADDEDCOMPONENT
+    .LABEL
+    Undo App Consent Standard
+    .IMPACT
+    High Impact
+    .POWERSHELLEQUIVALENT
+    Update-MgPolicyAuthorizationPolicy
+    .RECOMMENDEDBY
+    .DOCSDESCRIPTION
+    Disables App consent and set to Allow user consent for apps
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
     $CurrentState = New-GraphGetRequest -tenantid $Tenant -Uri 'https://graph.microsoft.com/beta/policies/authorizationPolicy/authorizationPolicy?$select=permissionGrantPolicyIdsAssignedToDefaultUserRole'
     $State = if ($CurrentState.permissionGrantPolicyIdsAssignedToDefaultUserRole -eq 'ManagePermissionGrantsForSelf.microsoft-user-default-legacy') { $true } else { $false }
-    $State
 
     If ($Settings.remediate -eq $true) {
 
@@ -18,7 +41,8 @@ function Invoke-CIPPStandardUndoOauth {
                 Write-LogMessage -API 'Standards' -tenant $tenant -message 'Application Consent Mode has been disabled.' -sev Info
                 $CurrentState.permissionGrantPolicyIdsAssignedToDefaultUserRole = 'ManagePermissionGrantsForSelf.microsoft-user-default-legacy'
             } catch {
-                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to set Application Consent Mode to disabled. Error: $($_.exception.message)" -sev Error
+                $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+                Write-LogMessage -API 'Standards' -tenant $tenant -message "Failed to set Application Consent Mode to disabled. Error: $ErrorMessage" -sev Error
             }
         }
 
@@ -36,3 +60,7 @@ function Invoke-CIPPStandardUndoOauth {
         Add-CIPPBPAField -FieldName 'UndoOauth' -FieldValue $State -StoreAs bool -Tenant $tenant
     }
 }
+
+
+
+

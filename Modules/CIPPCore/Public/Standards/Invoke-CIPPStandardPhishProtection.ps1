@@ -2,7 +2,34 @@ function Invoke-CIPPStandardPhishProtection {
     <#
     .FUNCTIONALITY
     Internal
+    .APINAME
+    PhishProtection
+    .CAT
+    Global Standards
+    .TAG
+    "lowimpact"
+    .HELPTEXT
+    Adds branding to the logon page that only appears if the url is not login.microsoftonline.com. This potentially prevents AITM attacks via EvilNginx. This will also automatically generate alerts if a clone of your login page has been found when set to Remediate.
+    .ADDEDCOMPONENT
+    .LABEL
+    Enable Phishing Protection system via branding CSS
+    .IMPACT
+    Low Impact
+    .DISABLEDFEATURES
+    
+    .POWERSHELLEQUIVALENT
+    Portal only
+    .RECOMMENDEDBY
+    "CIPP"
+    .DOCSDESCRIPTION
+    Adds branding to the logon page that only appears if the url is not login.microsoftonline.com. This potentially prevents AITM attacks via EvilNginx. This will also automatically generate alerts if a clone of your login page has been found when set to Remediate.
+    .UPDATECOMMENTBLOCK
+    Run the Tools\Update-StandardsComments.ps1 script to update this comment block
     #>
+
+
+
+
     param($Tenant, $Settings)
     $TenantId = Get-Tenants | Where-Object -Property defaultDomainName -EQ $tenant
 
@@ -39,7 +66,8 @@ function Invoke-CIPPStandardPhishProtection {
                 Write-LogMessage -API 'Standards' -tenant $tenant -message 'Enabled Logon Screen Phishing Protection system' -sev Info
             }
         } catch {
-            Write-LogMessage -API 'Standards' -tenant $tenant -message "Could not set Logon Screen Phishing Protection System for $($Tenant): $($_.Exception.Message)" -sev Error
+            $ErrorMessage = Get-NormalizedError -Message $_.Exception.Message
+            Write-LogMessage -API 'Standards' -tenant $tenant -message "Could not set Logon Screen Phishing Protection System for $($Tenant): $ErrorMessage" -sev Error
         }
     }
 
@@ -55,3 +83,7 @@ function Invoke-CIPPStandardPhishProtection {
         Add-CIPPBPAField -FieldName 'PhishProtection' -FieldValue $authstate -StoreAs bool -Tenant $tenant
     }
 }
+
+
+
+
